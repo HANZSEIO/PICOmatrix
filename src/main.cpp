@@ -1,18 +1,27 @@
 #include <Arduino.h>
+#include "DisplayMatrix.h"
+#include "SerialStream.h"
 
-// put function declarations here:
-int myFunction(int, int);
+DisplayMatrix matrix;
+SerialStream stream(6144);
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  matrix.init();
+  matrix.drawSplash();
+  stream.init(921600);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  if (stream.update()) {
+    matrix.renderFrame(stream.getBuffer());
+  }
 }
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+void setup1() {
+  
 }
+
+void loop1() {
+  matrix.updateDisplay();
+}
+

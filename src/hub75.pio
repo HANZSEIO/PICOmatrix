@@ -1,0 +1,40 @@
+.program hub75_data
+.side_set 1 ; Pin CLK
+
+.wrap_target
+    out pins, 6        side 0 [1] ; Ambil 6 bit data (R1G1B1R2G2B2), CLK LOW
+    out null, 2        side 1 [1] ; Buang 2 bit sisa (padding), CLK HIGH
+.wrap
+
+% c-sdk {
+static inline void hub75_data_program_init(PIO pio, uint sm, uint offset, uint data_pin_base, uint clk_pin) {
+    pio_sm_config c = hub75_data_program_get_default_config(offset);
+
+    // Set pin RGB (6 pin kontigu) sebagai output PIO
+    sm_config_set_out_pins(&c, data_pin_base, 6);
+    
+    // Set pin CLK sebagai side-set
+    sm_config_set_sideset_pins(&c, clk_pin);
+
+    // Hubungkan pin ke PIO
+    for (int i = 0; i < 6; i++) {
+        pio_gpio_init(pio, data_pin_base + i);
+    }
+    pio_gpio_init(pio, clk_pin);
+
+    // Set arah pin sebagai output
+    pio_sm_set_consecutive_pindirs(pio, sm, data_pin_base, 6, true);
+    pio_sm_set_consecutive_pindirs(pio, sm, clk_pin, 1, true);
+
+    // Konfigurasi shift register: 
+    // Shift ke kanan (true), autopull aktif (true), threshold 8 bit
+    sm_config_set_out_shift(&c, true, true, 8); 
+
+    // Set clock divider (sesuaikan kecepatan matrix, 10-20MHz biasanya aman)
+    float div = (float)clock_get_hz(clk_sys) / 20000000; 
+    sm_config_set_clkdiv(&c, div);
+
+    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_set_enabled(pio, sm, true);
+}
+%}
