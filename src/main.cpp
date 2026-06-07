@@ -9,6 +9,8 @@ void setup() {
   matrix.init();
   matrix.drawSplash();
   stream.init(921600);
+
+  Serial.setTimeout(100);
 }
 
 void loop() {
@@ -18,7 +20,6 @@ void loop() {
 }
 
 void setup1() {
-  
 }
 
 void loop1() {

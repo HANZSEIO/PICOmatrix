@@ -14,13 +14,14 @@ void SerialStream::init(unsigned long baudrate) {
 }
 
 bool SerialStream::update() {
-    if (Serial.available() >= 2) {
-        if (Serial.read() == 'F' && Serial.read() == 'R') {
+
+    Serial.write('G');
+    Serial.flush();
+
+    int header = Serial.read();
+        if (header == 0xAA) {
             size_t bytesRead = Serial.readBytes((char*)packet_buffer, expected_size);
-            if (bytesRead == expected_size) {
-                return true;
-            }
-        } 
+                return (bytesRead == expected_size);
     }
     return false;
 }

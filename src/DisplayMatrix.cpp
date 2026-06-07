@@ -46,6 +46,7 @@ void DisplayMatrix::renderFrame(const uint8_t *buffer) {
                 if ((buffer[idx1]     >> shift) & 0x01) pixel |= 0x01; // R1
                 if ((buffer[idx1 + 1] >> shift) & 0x01) pixel |= 0x02; // G1
                 if ((buffer[idx1 + 2] >> shift) & 0x01) pixel |= 0x04; // B1
+                
                 if ((buffer[idx2]     >> shift) & 0x01) pixel |= 0x08; // R2
                 if ((buffer[idx2 + 1] >> shift) & 0x01) pixel |= 0x10; // G2
                 if ((buffer[idx2 + 2] >> shift) & 0x01) pixel |= 0x20; // B2
