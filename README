@@ -1,0 +1,71 @@
+# PICOmatrix
+
+PICOmatrix is a high-performance LED matrix controller based on the Raspberry Pi Pico (RP2040). It is designed to drive HUB75 RGB LED panels with high efficiency, utilizing the unique hardware features of the RP2040.
+
+## Key Features
+
+- PIO (Programmable I/O): Hardware-level timing for HUB75 signals, ensuring jitter-free display output.
+- DMA (Direct Memory Access): Transfers frame data from memory to the PIO state machine without CPU intervention.
+- Multicore Architecture: Dedicated display refresh on Core 1 and communication/logic handling on Core 0.
+- Binary Code Modulation (BCM): Implements 4-bit color depth per channel, allowing for richer color gradients compared to standard 1-bit driving.
+- Double Buffering: Prevents visual tearing by using separate buffers for rendering and displaying.
+- High-speed Serial Interface: Supports high-bandwidth frame streaming from host devices.
+
+## Technical Specifications
+
+- Resolution: 64x32 pixels.
+- Refresh Rate: Variable based on BCM bitplane configuration.
+- Color Depth: 4-bit per RGB channel (64 colors).
+- Microcontroller: Raspberry Pi Pico (RP2040).
+- Framework: Arduino-Pico (Earle Philhower core).
+
+## Hardware Configuration
+
+The pinout is defined in include/config.h and follows these defaults:
+
+| Signal | GPIO Pin |
+|--------|----------|
+| R1     | 2        |
+| G1     | 3        |
+| B1     | 4        |
+| R2     | 5        |
+| G2     | 6        |
+| B2     | 7        |
+| A      | 8        |
+| B      | 9        |
+| C      | 10       |
+| D      | 11       |
+| CLK    | 12       |
+| LAT    | 13       |
+| OE     | 14       |
+
+## Software Architecture
+
+### Core 0 (Main Logic)
+Core 0 is responsible for system initialization and handling the SerialStream. It listens for incoming serial data, validates the header, and processes the raw RGB888 data into the packed buffer format required by the display engine.
+
+### Core 1 (Display Engine)
+Core 1 runs the updateDisplay loop exclusively. It manages the BCM timing and triggers DMA transfers for each bitplane of the current frame. This ensures that the display refresh remains stable regardless of the communication load on Core 0.
+
+### PIO Implementation
+The HUB75 data program handles the clocking and data shifting. It is configured to consume 8 bits per pixel (6 bits for R1, G1, B1, R2, G2, B2 and 2 bits for padding) to maintain alignment with DMA transfers.
+
+## Communication Protocol
+
+The controller expects a serial stream at 921600 baud (native USB speed). Each frame must be sent in the following format:
+
+1. Header: 2 bytes ('F', 'R')
+2. Payload: 6144 bytes of raw RGB888 data (64 * 32 * 3).
+
+## Build Instructions
+
+This project uses PlatformIO. To build and upload:
+
+1. Install PlatformIO.
+2. Clone the repository.
+3. Run the following command:
+   platformio run --target upload
+
+## Python Integration
+
+The controller can be driven by a Python script using the pyserial and numpy libraries. Ensure the header 'FR' is prepended to the 6144-byte frame buffer before transmission.
